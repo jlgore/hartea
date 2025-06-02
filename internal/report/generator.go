@@ -18,21 +18,21 @@ type Generator struct {
 }
 
 type Report struct {
-	GeneratedAt time.Time             `json:"generated_at"`
-	Files       []string              `json:"files"`
-	Summary     ReportSummary         `json:"summary"`
-	Metrics     []*har.Metrics        `json:"metrics"`
-	Comparison  *har.Comparison       `json:"comparison,omitempty"`
-	Entries     []har.Entry           `json:"entries,omitempty"`
+	GeneratedAt time.Time       `json:"generated_at"`
+	Files       []string        `json:"files"`
+	Summary     ReportSummary   `json:"summary"`
+	Metrics     []*har.Metrics  `json:"metrics"`
+	Comparison  *har.Comparison `json:"comparison,omitempty"`
+	Entries     []har.Entry     `json:"entries,omitempty"`
 }
 
 type ReportSummary struct {
-	TotalFiles       int     `json:"total_files"`
-	TotalRequests    int     `json:"total_requests"`
-	TotalErrors      int     `json:"total_errors"`
-	AverageLoadTime  float64 `json:"average_load_time"`
-	AverageTTFB      float64 `json:"average_ttfb"`
-	TotalTransferMB  float64 `json:"total_transfer_mb"`
+	TotalFiles      int     `json:"total_files"`
+	TotalRequests   int     `json:"total_requests"`
+	TotalErrors     int     `json:"total_errors"`
+	AverageLoadTime float64 `json:"average_load_time"`
+	AverageTTFB     float64 `json:"average_ttfb"`
+	TotalTransferMB float64 `json:"total_transfer_mb"`
 }
 
 func NewGenerator(harFiles []*har.HAR, analyzers []*har.Analyzer, comparison *har.Comparison) *Generator {
@@ -46,19 +46,19 @@ func NewGenerator(harFiles []*har.HAR, analyzers []*har.Analyzer, comparison *ha
 func (g *Generator) GenerateReport(includeEntries bool) *Report {
 	// Calculate summary metrics
 	summary := g.calculateSummary()
-	
+
 	// Collect all metrics
 	metrics := make([]*har.Metrics, len(g.analyzers))
 	for i, analyzer := range g.analyzers {
 		metrics[i] = analyzer.CalculateMetrics()
 	}
-	
+
 	// File names
 	fileNames := make([]string, len(g.harFiles))
 	for i := range g.harFiles {
 		fileNames[i] = fmt.Sprintf("File %d", i+1)
 	}
-	
+
 	report := &Report{
 		GeneratedAt: time.Now(),
 		Files:       fileNames,
@@ -66,12 +66,12 @@ func (g *Generator) GenerateReport(includeEntries bool) *Report {
 		Metrics:     metrics,
 		Comparison:  g.comparison,
 	}
-	
+
 	// Include entries if requested (for detailed analysis)
 	if includeEntries && len(g.harFiles) > 0 {
 		report.Entries = g.harFiles[0].Log.Entries
 	}
-	
+
 	return report
 }
 
@@ -79,14 +79,14 @@ func (g *Generator) calculateSummary() ReportSummary {
 	summary := ReportSummary{
 		TotalFiles: len(g.harFiles),
 	}
-	
+
 	if len(g.analyzers) == 0 {
 		return summary
 	}
-	
+
 	var totalRequests, totalErrors int
 	var totalLoadTime, totalTTFB, totalTransferBytes float64
-	
+
 	for _, analyzer := range g.analyzers {
 		metrics := analyzer.CalculateMetrics()
 		totalRequests += metrics.TotalRequests
@@ -95,32 +95,32 @@ func (g *Generator) calculateSummary() ReportSummary {
 		totalTTFB += metrics.TTFB
 		totalTransferBytes += float64(metrics.TotalSize)
 	}
-	
+
 	fileCount := float64(len(g.analyzers))
 	summary.TotalRequests = totalRequests
 	summary.TotalErrors = totalErrors
 	summary.AverageLoadTime = totalLoadTime / fileCount
 	summary.AverageTTFB = totalTTFB / fileCount
 	summary.TotalTransferMB = totalTransferBytes / (1024 * 1024) // Convert to MB
-	
+
 	return summary
 }
 
 func (g *Generator) ExportJSON(filename string, includeEntries bool) error {
 	report := g.GenerateReport(includeEntries)
-	
+
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create JSON file: %w", err)
 	}
 	defer file.Close()
-	
+
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(report); err != nil {
 		return fmt.Errorf("failed to encode JSON: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -130,21 +130,21 @@ func (g *Generator) ExportCSV(filename string) error {
 		return fmt.Errorf("failed to create CSV file: %w", err)
 	}
 	defer file.Close()
-	
+
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
-	
+
 	// Write headers
 	headers := []string{
-		"File", "Total Load Time (ms)", "TTFB (ms)", "DNS Time (ms)", 
-		"Connect Time (ms)", "SSL Time (ms)", "Total Requests", 
-		"Error Requests", "Third-party Requests", "Cache Hit Ratio (%)", 
+		"File", "Total Load Time (ms)", "TTFB (ms)", "DNS Time (ms)",
+		"Connect Time (ms)", "SSL Time (ms)", "Total Requests",
+		"Error Requests", "Third-party Requests", "Cache Hit Ratio (%)",
 		"Total Size (MB)",
 	}
 	if err := writer.Write(headers); err != nil {
 		return fmt.Errorf("failed to write CSV headers: %w", err)
 	}
-	
+
 	// Write metrics for each file
 	for i, analyzer := range g.analyzers {
 		metrics := analyzer.CalculateMetrics()
@@ -165,31 +165,31 @@ func (g *Generator) ExportCSV(filename string) error {
 			return fmt.Errorf("failed to write CSV record: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
 func (g *Generator) ExportHTML(filename string) error {
 	report := g.GenerateReport(false)
-	
+
 	html := g.generateHTMLContent(report)
-	
+
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create HTML file: %w", err)
 	}
 	defer file.Close()
-	
+
 	if _, err := file.WriteString(html); err != nil {
 		return fmt.Errorf("failed to write HTML content: %w", err)
 	}
-	
+
 	return nil
 }
 
 func (g *Generator) generateHTMLContent(report *Report) string {
 	var html strings.Builder
-	
+
 	html.WriteString(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -287,7 +287,7 @@ func (g *Generator) generateHTMLContent(report *Report) string {
         <h1>⚓ Hartea Analysis Report - Ahoy Matey!</h1>
         <p><strong>Generated:</strong> ` + report.GeneratedAt.Format("January 2, 2006 at 3:04 PM") + `</p>
         <p><strong>Files Analyzed:</strong> ` + strings.Join(report.Files, ", ") + `</p>`)
-	
+
 	// Summary section
 	html.WriteString(`
         <h2>📊 Executive Summary</h2>
@@ -317,7 +317,7 @@ func (g *Generator) generateHTMLContent(report *Report) string {
                 <div class="metric-label">Total Errors</div>
             </div>
         </div>`)
-	
+
 	// Detailed metrics
 	html.WriteString(`
         <h2>📈 Detailed Metrics</h2>
@@ -334,12 +334,12 @@ func (g *Generator) generateHTMLContent(report *Report) string {
                 </tr>
             </thead>
             <tbody>`)
-	
+
 	for i, metrics := range report.Metrics {
 		statusClass := getLoadTimeStatusClass(metrics.PageLoadTime)
 		ttfbClass := getTTFBStatusClass(metrics.TTFB)
 		errorClass := getErrorStatusClass(metrics.ErrorRequests)
-		
+
 		html.WriteString(fmt.Sprintf(`
                 <tr>
                     <td><strong>%s</strong></td>
@@ -358,11 +358,11 @@ func (g *Generator) generateHTMLContent(report *Report) string {
 			metrics.CacheHitRatio,
 			float64(metrics.TotalSize)/(1024*1024)))
 	}
-	
+
 	html.WriteString(`
             </tbody>
         </table>`)
-	
+
 	// Comparison section (if available)
 	if report.Comparison != nil {
 		html.WriteString(`
@@ -376,7 +376,7 @@ func (g *Generator) generateHTMLContent(report *Report) string {
             <thead>
                 <tr>
                     <th>Metric</th>`)
-		
+
 		for i, file := range report.Comparison.Files {
 			if i == 0 {
 				html.WriteString(`<th>` + file + ` (Base)</th>`)
@@ -384,15 +384,15 @@ func (g *Generator) generateHTMLContent(report *Report) string {
 				html.WriteString(`<th>` + file + `</th>`)
 			}
 		}
-		
+
 		html.WriteString(`
                 </tr>
             </thead>
             <tbody>`)
-		
+
 		for _, diff := range report.Comparison.Differences {
 			html.WriteString(`<tr><td><strong>` + diff.Name + `</strong></td>`)
-			
+
 			for i, value := range diff.Values {
 				if i == 0 {
 					html.WriteString(`<td>` + fmt.Sprintf("%v", value) + `</td>`)
@@ -412,15 +412,15 @@ func (g *Generator) generateHTMLContent(report *Report) string {
 					html.WriteString(`<td>` + fmt.Sprintf("%v", value) + ` <span class="` + class + `">(` + change + `)</span></td>`)
 				}
 			}
-			
+
 			html.WriteString(`</tr>`)
 		}
-		
+
 		html.WriteString(`
             </tbody>
         </table>`)
 	}
-	
+
 	// Footer
 	html.WriteString(`
         <div class="footer">
@@ -430,7 +430,7 @@ func (g *Generator) generateHTMLContent(report *Report) string {
     </div>
 </body>
 </html>`)
-	
+
 	return html.String()
 }
 
@@ -467,7 +467,7 @@ func (g *Generator) ExportPDF(filename string) error {
 	if err := g.ExportHTML(htmlFile); err != nil {
 		return fmt.Errorf("failed to generate HTML for PDF: %w", err)
 	}
-	
+
 	// Convert HTML to PDF using gofpdf (native approach)
 	return g.convertHTMLToPDF(htmlFile, filename)
 }

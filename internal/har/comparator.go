@@ -6,29 +6,29 @@ import (
 )
 
 type Comparison struct {
-	Files        []string
-	Metrics      []*Metrics
-	Differences  []MetricDifference
-	Summary      ComparisonSummary
+	Files       []string
+	Metrics     []*Metrics
+	Differences []MetricDifference
+	Summary     ComparisonSummary
 }
 
 type MetricDifference struct {
-	Name        string
-	Values      []interface{}
-	Changes     []string
+	Name         string
+	Values       []interface{}
+	Changes      []string
 	Improvements []bool
 }
 
 type ComparisonSummary struct {
-	BetterCount   int
-	WorseCount    int
+	BetterCount    int
+	WorseCount     int
 	UnchangedCount int
-	TotalMetrics  int
+	TotalMetrics   int
 }
 
 type Comparator struct {
-	files    []string
-	metrics  []*Metrics
+	files   []string
+	metrics []*Metrics
 }
 
 func NewComparator(files []string, metrics []*Metrics) *Comparator {
@@ -79,7 +79,7 @@ func (c *Comparator) compareFloat(name, unit string, extractor func(*Metrics) fl
 	for i, metric := range c.metrics {
 		value := extractor(metric)
 		values[i] = fmt.Sprintf("%.1f%s", value, unit)
-		
+
 		if i > 0 {
 			baseValue := extractor(c.metrics[0])
 			change := value - baseValue
@@ -87,7 +87,7 @@ func (c *Comparator) compareFloat(name, unit string, extractor func(*Metrics) fl
 			if baseValue != 0 {
 				changePercent = (change / baseValue) * 100
 			}
-			
+
 			if math.Abs(changePercent) < 0.1 {
 				changes[i] = "No change"
 				improvements[i] = false
@@ -124,7 +124,7 @@ func (c *Comparator) compareInt(name, unit string, extractor func(*Metrics) int)
 		} else {
 			values[i] = fmt.Sprintf("%d", value)
 		}
-		
+
 		if i > 0 {
 			baseValue := extractor(c.metrics[0])
 			change := value - baseValue
@@ -132,7 +132,7 @@ func (c *Comparator) compareInt(name, unit string, extractor func(*Metrics) int)
 			if baseValue != 0 {
 				changePercent = (float64(change) / float64(baseValue)) * 100
 			}
-			
+
 			if change == 0 {
 				changes[i] = "No change"
 				improvements[i] = false
@@ -165,7 +165,7 @@ func (c *Comparator) compareSize(name string, extractor func(*Metrics) int64) Me
 	for i, metric := range c.metrics {
 		value := extractor(metric)
 		values[i] = formatSize(int(value))
-		
+
 		if i > 0 {
 			baseValue := extractor(c.metrics[0])
 			change := value - baseValue
@@ -173,7 +173,7 @@ func (c *Comparator) compareSize(name string, extractor func(*Metrics) int64) Me
 			if baseValue != 0 {
 				changePercent = (float64(change) / float64(baseValue)) * 100
 			}
-			
+
 			if change == 0 {
 				changes[i] = "No change"
 				improvements[i] = false
@@ -200,7 +200,7 @@ func (c *Comparator) compareSize(name string, extractor func(*Metrics) int64) Me
 
 func (c *Comparator) calculateSummary(differences []MetricDifference) ComparisonSummary {
 	var better, worse, unchanged int
-	
+
 	for _, diff := range differences {
 		for i := 1; i < len(diff.Improvements); i++ {
 			if diff.Changes[i] == "No change" {
@@ -223,15 +223,15 @@ func (c *Comparator) calculateSummary(differences []MetricDifference) Comparison
 
 // Extractor functions
 func extractPageLoadTime(m *Metrics) float64   { return m.PageLoadTime }
-func extractTTFB(m *Metrics) float64          { return m.TTFB }
-func extractDNSTime(m *Metrics) float64       { return m.DNSTime }
-func extractConnectTime(m *Metrics) float64   { return m.ConnectTime }
-func extractSSLTime(m *Metrics) float64       { return m.SSLTime }
-func extractTotalRequests(m *Metrics) int     { return m.TotalRequests }
-func extractErrorRequests(m *Metrics) int     { return m.ErrorRequests }
+func extractTTFB(m *Metrics) float64           { return m.TTFB }
+func extractDNSTime(m *Metrics) float64        { return m.DNSTime }
+func extractConnectTime(m *Metrics) float64    { return m.ConnectTime }
+func extractSSLTime(m *Metrics) float64        { return m.SSLTime }
+func extractTotalRequests(m *Metrics) int      { return m.TotalRequests }
+func extractErrorRequests(m *Metrics) int      { return m.ErrorRequests }
 func extractThirdPartyRequests(m *Metrics) int { return m.ThirdPartyRequests }
-func extractCacheHitRatio(m *Metrics) float64 { return m.CacheHitRatio }
-func extractTotalSize(m *Metrics) int64       { return m.TotalSize }
+func extractCacheHitRatio(m *Metrics) float64  { return m.CacheHitRatio }
+func extractTotalSize(m *Metrics) int64        { return m.TotalSize }
 
 // Improvement detection
 func isImprovementFloat(metricName string, change float64) bool {
@@ -240,18 +240,18 @@ func isImprovementFloat(metricName string, change float64) bool {
 		"Total Load Time", "Time to First Byte", "Average DNS Time",
 		"Average Connect Time", "Average SSL Time",
 	}
-	
+
 	for _, timing := range timingMetrics {
 		if metricName == timing {
 			return change < 0
 		}
 	}
-	
+
 	// For cache hit ratio, higher is better
 	if metricName == "Cache Hit Ratio" {
 		return change > 0
 	}
-	
+
 	return false
 }
 
@@ -260,7 +260,7 @@ func isImprovementInt(metricName string, change int) bool {
 	if metricName == "Error Requests" || metricName == "Third-party Requests" {
 		return change < 0
 	}
-	
+
 	// For total requests, depends on context - we'll consider it neutral
 	return false
 }

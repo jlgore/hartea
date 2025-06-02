@@ -52,19 +52,19 @@ func main() {
 	// Parse HAR files
 	parser := har.NewParser()
 	var harFiles []*har.HAR
-	
+
 	for _, filepath := range os.Args[1:] {
 		harFile, err := parser.ParseFile(filepath)
 		if err != nil {
 			fmt.Printf("Error parsing %s: %v\n", filepath, err)
 			os.Exit(1)
 		}
-		
+
 		if err := parser.ValidateHAR(harFile); err != nil {
 			fmt.Printf("Invalid HAR file %s: %v\n", filepath, err)
 			os.Exit(1)
 		}
-		
+
 		harFiles = append(harFiles, harFile)
 		fmt.Printf("Loaded HAR file: %s (%d entries)\n", filepath, len(harFile.Log.Entries))
 	}
@@ -77,7 +77,7 @@ func main() {
 	// Initialize and run TUI
 	model := tui.NewModel(harFiles)
 	program := tea.NewProgram(model, tea.WithAltScreen())
-	
+
 	if _, err := program.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)

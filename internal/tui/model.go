@@ -31,24 +31,24 @@ type Model struct {
 	currentFile   int
 	currentView   ViewMode
 	selectedEntry int
-	
+
 	// Components
-	table       table.Model
-	filter      textinput.Model
-	
+	table  table.Model
+	filter textinput.Model
+
 	// State
-	width       int
-	height      int
-	loading     bool
-	err         error
-	showFilter  bool
-	
+	width      int
+	height     int
+	loading    bool
+	err        error
+	showFilter bool
+
 	// Data
-	entries     []har.Entry
-	timeline    []har.TimelineEvent
-	metrics     *har.Metrics
-	comparison  *har.Comparison
-	
+	entries    []har.Entry
+	timeline   []har.TimelineEvent
+	metrics    *har.Metrics
+	comparison *har.Comparison
+
 	// Keybindings
 	keys KeyMap
 }
@@ -56,13 +56,13 @@ type Model struct {
 // Make render methods available
 func (m Model) RenderTableView() string {
 	var header string
-	
+
 	if len(m.harFiles) > 1 {
 		header = titleStyle.Render(fmt.Sprintf("Hartea Analysis - Treasure Map %d/%d", m.currentFile+1, len(m.harFiles)))
 	} else {
 		header = titleStyle.Render("Hartea - Charting Digital Seas")
 	}
-	
+
 	if m.metrics != nil {
 		summary := fmt.Sprintf(
 			"Requests: %d | Total Time: %.1fms | Total Size: %s | Errors: %d",
@@ -73,14 +73,14 @@ func (m Model) RenderTableView() string {
 		)
 		header += "\n" + statusStyle.Render(summary)
 	}
-	
+
 	var footer string
 	if len(m.harFiles) > 1 {
 		footer = "\n" + statusStyle.Render("Press ? for help, / to filter, m for metrics, t for timeline, c for comparison, e to export, q to quit")
 	} else {
 		footer = "\n" + statusStyle.Render("Press ? for help, / to filter, m for metrics, t for timeline, e to export, q to quit")
 	}
-	
+
 	return header + "\n\n" + m.table.View() + footer
 }
 
@@ -88,18 +88,18 @@ func (m Model) RenderFilter() string {
 	header := titleStyle.Render("Filter Requests")
 	prompt := "\n\n" + m.filter.View()
 	help := "\n\nPress Enter to apply filter, Esc to cancel"
-	
+
 	return header + prompt + help
 }
 
 type KeyMap struct {
-	Up       key.Binding
-	Down     key.Binding
-	Left     key.Binding
-	Right    key.Binding
-	Enter    key.Binding
-	Back     key.Binding
-	Filter   key.Binding
+	Up         key.Binding
+	Down       key.Binding
+	Left       key.Binding
+	Right      key.Binding
+	Enter      key.Binding
+	Back       key.Binding
+	Filter     key.Binding
 	Metrics    key.Binding
 	Timeline   key.Binding
 	Comparison key.Binding
@@ -180,13 +180,13 @@ func NewModel(harFiles []*har.HAR) Model {
 	var metrics *har.Metrics
 	var timeline []har.TimelineEvent
 	var comparison *har.Comparison
-	
+
 	if len(harFiles) > 0 {
 		entries = harFiles[0].Log.Entries
 		metrics = analyzers[0].CalculateMetrics()
 		timeline = analyzers[0].GenerateTimeline()
 	}
-	
+
 	// Create comparison if multiple files
 	if len(harFiles) > 1 {
 		allMetrics := make([]*har.Metrics, len(analyzers))
@@ -250,7 +250,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.table.SetHeight(msg.Height - 10)
-		
+
 		// Update table column widths
 		columns := m.table.Columns()
 		if len(columns) > 0 {
@@ -380,22 +380,22 @@ func (m Model) renderDetailView() string {
 	if m.selectedEntry >= len(m.entries) {
 		return "No entry selected"
 	}
-	
+
 	entry := m.entries[m.selectedEntry]
-	
+
 	var details []string
-	
+
 	// Header
 	details = append(details, titleStyle.Render("Request Details"))
 	details = append(details, "")
-	
+
 	// Request info
 	details = append(details, headerStyle.Render("Request"))
 	details = append(details, fmt.Sprintf("Method: %s", entry.Request.Method))
 	details = append(details, fmt.Sprintf("URL: %s", entry.Request.URL))
 	details = append(details, fmt.Sprintf("HTTP Version: %s", entry.Request.HTTPVersion))
 	details = append(details, "")
-	
+
 	// Response info
 	details = append(details, headerStyle.Render("Response"))
 	details = append(details, fmt.Sprintf("Status: %d %s", entry.Response.Status, entry.Response.StatusText))
@@ -405,7 +405,7 @@ func (m Model) renderDetailView() string {
 		details = append(details, fmt.Sprintf("Compression: %s saved", formatSize(entry.Response.Content.Compression)))
 	}
 	details = append(details, "")
-	
+
 	// Timing breakdown
 	details = append(details, headerStyle.Render("Timing Breakdown"))
 	details = append(details, fmt.Sprintf("Total Time: %.1fms", entry.Time))
@@ -425,7 +425,7 @@ func (m Model) renderDetailView() string {
 	details = append(details, fmt.Sprintf("Wait (TTFB): %dms", entry.Timings.Wait))
 	details = append(details, fmt.Sprintf("Receive: %dms", entry.Timings.Receive))
 	details = append(details, "")
-	
+
 	// Request headers (top 5)
 	if len(entry.Request.Headers) > 0 {
 		details = append(details, headerStyle.Render("Request Headers (Top 5)"))
@@ -442,7 +442,7 @@ func (m Model) renderDetailView() string {
 		}
 		details = append(details, "")
 	}
-	
+
 	// Response headers (top 5)
 	if len(entry.Response.Headers) > 0 {
 		details = append(details, headerStyle.Render("Response Headers (Top 5)"))
@@ -459,10 +459,10 @@ func (m Model) renderDetailView() string {
 		}
 		details = append(details, "")
 	}
-	
+
 	// Footer
 	details = append(details, statusStyle.Render("Press Esc to go back"))
-	
+
 	return fmt.Sprintf("%s", details[0]) + "\n" + fmt.Sprintf("%s", details[1:])
 }
 
@@ -470,13 +470,13 @@ func (m Model) renderMetricsView() string {
 	if m.metrics == nil {
 		return "No metrics available"
 	}
-	
+
 	var content []string
-	
+
 	// Header
 	content = append(content, titleStyle.Render("Performance Metrics"))
 	content = append(content, "")
-	
+
 	// Core Web Vitals section
 	content = append(content, headerStyle.Render("Core Performance Metrics"))
 	ttfbStatus := ""
@@ -488,7 +488,7 @@ func (m Model) renderMetricsView() string {
 		ttfbStatus = " ✅ (Good)"
 	}
 	content = append(content, fmt.Sprintf("Time to First Byte (TTFB): %.1fms%s", m.metrics.TTFB, ttfbStatus))
-	
+
 	loadStatus := ""
 	if m.metrics.PageLoadTime > 3000 {
 		loadStatus = " ⚠️  (Poor)"
@@ -499,7 +499,7 @@ func (m Model) renderMetricsView() string {
 	}
 	content = append(content, fmt.Sprintf("Page Load Time: %.1fms%s", m.metrics.PageLoadTime, loadStatus))
 	content = append(content, "")
-	
+
 	// Network metrics
 	content = append(content, headerStyle.Render("Network Performance"))
 	content = append(content, fmt.Sprintf("Average DNS Time: %.1fms", m.metrics.DNSTime))
@@ -508,7 +508,7 @@ func (m Model) renderMetricsView() string {
 		content = append(content, fmt.Sprintf("Average SSL Time: %.1fms", m.metrics.SSLTime))
 	}
 	content = append(content, "")
-	
+
 	// Request statistics
 	content = append(content, headerStyle.Render("Request Statistics"))
 	content = append(content, fmt.Sprintf("Total Requests: %d", m.metrics.TotalRequests))
@@ -521,7 +521,7 @@ func (m Model) renderMetricsView() string {
 		}
 	}
 	content = append(content, errorInfo)
-	
+
 	thirdPartyInfo := fmt.Sprintf("Third-party Requests: %d", m.metrics.ThirdPartyRequests)
 	if m.metrics.TotalRequests > 0 {
 		thirdPartyRate := float64(m.metrics.ThirdPartyRequests) / float64(m.metrics.TotalRequests) * 100
@@ -529,7 +529,7 @@ func (m Model) renderMetricsView() string {
 	}
 	content = append(content, thirdPartyInfo)
 	content = append(content, "")
-	
+
 	// Cache efficiency
 	content = append(content, headerStyle.Render("Cache Performance"))
 	cacheInfo := fmt.Sprintf("Cache Hit Ratio: %.1f%%", m.metrics.CacheHitRatio)
@@ -542,7 +542,7 @@ func (m Model) renderMetricsView() string {
 	}
 	content = append(content, cacheInfo)
 	content = append(content, "")
-	
+
 	// Size analysis
 	content = append(content, headerStyle.Render("Size Analysis"))
 	content = append(content, fmt.Sprintf("Total Transfer Size: %s", formatSize(int(m.metrics.TotalSize))))
@@ -551,10 +551,10 @@ func (m Model) renderMetricsView() string {
 		content = append(content, fmt.Sprintf("Average Request Size: %s", formatSize(int(avgSize))))
 	}
 	content = append(content, "")
-	
+
 	// Performance recommendations
 	content = append(content, headerStyle.Render("Recommendations"))
-	
+
 	if m.metrics.TTFB > 800 {
 		content = append(content, "• Optimize server response time (TTFB > 800ms)")
 	}
@@ -570,26 +570,26 @@ func (m Model) renderMetricsView() string {
 	if m.metrics.TotalSize > 1024*1024*5 { // 5MB
 		content = append(content, "• Optimize resource sizes and compression")
 	}
-	
+
 	content = append(content, "")
 	content = append(content, statusStyle.Render("Press Esc to go back"))
-	
+
 	return fmt.Sprintf("%s", content[0]) + "\n" + fmt.Sprintf("%s", content[1:])
 }
 
 func (m Model) renderHelpView() string {
 	var help []string
-	
+
 	help = append(help, titleStyle.Render("Hartea - Navigator's Guide"))
 	help = append(help, "")
-	
+
 	help = append(help, headerStyle.Render("Navigation"))
 	help = append(help, "↑/k, ↓/j     Navigate up/down in table")
 	help = append(help, "Enter        View request details")
 	help = append(help, "Esc          Go back/cancel")
 	help = append(help, "Tab          Switch between HAR files (if multiple)")
 	help = append(help, "")
-	
+
 	help = append(help, headerStyle.Render("Views"))
 	help = append(help, "m            Toggle metrics view")
 	help = append(help, "t            Toggle timeline view")
@@ -600,14 +600,14 @@ func (m Model) renderHelpView() string {
 	help = append(help, "?            Toggle this help")
 	help = append(help, "/            Filter requests")
 	help = append(help, "")
-	
+
 	help = append(help, headerStyle.Render("Filtering"))
 	help = append(help, "Type to filter by URL, method, or content type")
 	help = append(help, "Examples: 'GET', 'javascript', 'api/', '404'")
 	help = append(help, "")
-	
+
 	help = append(help, statusStyle.Render("Press q to quit, Esc to go back"))
-	
+
 	return fmt.Sprintf("%s", help[0]) + "\n" + fmt.Sprintf("%s", help[1:])
 }
 
@@ -643,7 +643,7 @@ func (tr *TimelineRenderer) RenderWaterfall(entries []har.Entry, timeline []har.
 	// Calculate time bounds
 	tr.startTime = timeline[0].StartTime
 	tr.endTime = timeline[0].StartTime
-	
+
 	for _, event := range timeline {
 		if event.StartTime.Before(tr.startTime) {
 			tr.startTime = event.StartTime
@@ -663,71 +663,71 @@ func (tr *TimelineRenderer) RenderWaterfall(entries []har.Entry, timeline []har.
 	if chartWidth < 20 {
 		chartWidth = 20
 	}
-	
+
 	tr.pixelScale = totalDuration / float64(chartWidth)
 
 	var output []string
-	
+
 	output = append(output, titleStyle.Render("Request Timeline (Waterfall Chart)"))
 	output = append(output, "")
-	
+
 	output = append(output, tr.renderTimeScale(chartWidth))
 	output = append(output, "")
-	
+
 	maxEntries := tr.height - 8
 	entriesToShow := len(timeline)
 	if entriesToShow > maxEntries {
 		entriesToShow = maxEntries
 	}
-	
+
 	for i := 0; i < entriesToShow; i++ {
 		event := timeline[i]
 		output = append(output, tr.renderRequestBar(event, chartWidth, i))
 	}
-	
+
 	if len(timeline) > maxEntries {
 		output = append(output, fmt.Sprintf("... and %d more requests", len(timeline)-maxEntries))
 	}
-	
+
 	output = append(output, "")
 	output = append(output, tr.renderLegend())
 	output = append(output, "")
 	output = append(output, statusStyle.Render("Press Esc to go back"))
-	
+
 	return strings.Join(output, "\n")
 }
 
 func (tr *TimelineRenderer) renderTimeScale(chartWidth int) string {
 	scale := strings.Repeat(" ", 30)
-	
+
 	scaleLine := make([]rune, chartWidth)
 	for i := range scaleLine {
 		scaleLine[i] = '─'
 	}
-	
+
 	totalMs := tr.endTime.Sub(tr.startTime).Seconds() * 1000
 	markers := []float64{0, 0.25, 0.5, 0.75, 1.0}
-	
+
 	for _, marker := range markers {
 		pos := int(float64(chartWidth) * marker)
 		if pos < chartWidth {
 			scaleLine[pos] = '┬'
 		}
 	}
-	
+
 	scale += string(scaleLine)
 	scale += "\n" + strings.Repeat(" ", 30)
-	
+
 	labelLine := make([]rune, chartWidth)
 	for i := range labelLine {
 		labelLine[i] = ' '
 	}
-	
+
 	for _, marker := range markers {
 		pos := int(float64(chartWidth) * marker)
 		timeMs := totalMs * marker
 		timeLabel := fmt.Sprintf("%.0fms", timeMs)
-		
+
 		labelStart := pos - len(timeLabel)/2
 		if labelStart < 0 {
 			labelStart = 0
@@ -735,7 +735,7 @@ func (tr *TimelineRenderer) renderTimeScale(chartWidth int) string {
 		if labelStart+len(timeLabel) >= chartWidth {
 			labelStart = chartWidth - len(timeLabel)
 		}
-		
+
 		if labelStart >= 0 {
 			for j, char := range timeLabel {
 				if labelStart+j < chartWidth {
@@ -744,7 +744,7 @@ func (tr *TimelineRenderer) renderTimeScale(chartWidth int) string {
 			}
 		}
 	}
-	
+
 	scale += string(labelLine)
 	return scale
 }
@@ -754,36 +754,36 @@ func (tr *TimelineRenderer) renderRequestBar(event har.TimelineEvent, chartWidth
 	if len(label) > 28 {
 		label = label[:25] + "..."
 	}
-	
+
 	bar := fmt.Sprintf("%-30s", label)
-	
+
 	requestStart := event.StartTime.Sub(tr.startTime).Seconds() * 1000
 	requestDuration := event.Duration
-	
+
 	startPos := int(requestStart / tr.pixelScale)
 	duration := int(requestDuration / tr.pixelScale)
-	
+
 	if duration < 1 {
 		duration = 1
 	}
-	
+
 	if startPos >= chartWidth {
 		startPos = chartWidth - 1
 	}
 	if startPos+duration > chartWidth {
 		duration = chartWidth - startPos
 	}
-	
+
 	timeline := make([]rune, chartWidth)
 	for i := range timeline {
 		timeline[i] = ' '
 	}
-	
+
 	barChar, barStyle := tr.getBarStyle(event)
 	for i := startPos; i < startPos+duration && i < chartWidth; i++ {
 		timeline[i] = barChar
 	}
-	
+
 	if startPos+duration < chartWidth {
 		if event.Status >= 400 {
 			timeline[startPos+duration] = '✗'
@@ -793,13 +793,13 @@ func (tr *TimelineRenderer) renderRequestBar(event har.TimelineEvent, chartWidth
 			timeline[startPos+duration] = '✓'
 		}
 	}
-	
+
 	timelineStr := string(timeline)
 	timelineStr = barStyle.Render(timelineStr)
-	
+
 	bar += timelineStr
 	bar += fmt.Sprintf(" %s %.1fms", tr.getStatusIcon(event.Status), event.Duration)
-	
+
 	return bar
 }
 
@@ -815,11 +815,11 @@ func (tr *TimelineRenderer) formatRequestLabel(event har.TimelineEvent) string {
 			}
 		}
 	}
-	
+
 	if strings.Contains(filename, "?") {
 		filename = strings.Split(filename, "?")[0]
 	}
-	
+
 	return fmt.Sprintf("%s %s", event.Method, filename)
 }
 
@@ -827,11 +827,11 @@ func (tr *TimelineRenderer) getBarStyle(event har.TimelineEvent) (rune, lipgloss
 	if event.Status >= 400 {
 		return '█', lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
 	}
-	
+
 	if event.Status >= 300 {
 		return '█', lipgloss.NewStyle().Foreground(lipgloss.Color("11"))
 	}
-	
+
 	if strings.Contains(event.ContentType, "html") {
 		return '█', lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 	} else if strings.Contains(event.ContentType, "javascript") {
@@ -845,7 +845,7 @@ func (tr *TimelineRenderer) getBarStyle(event har.TimelineEvent) (rune, lipgloss
 	} else if strings.Contains(event.ContentType, "font") {
 		return '█', lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
 	}
-	
+
 	return '█', lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
 }
 
@@ -862,16 +862,16 @@ func (tr *TimelineRenderer) getStatusIcon(status int) string {
 
 func (tr *TimelineRenderer) renderLegend() string {
 	var legend []string
-	
+
 	legend = append(legend, headerStyle.Render("Legend:"))
-	
+
 	htmlStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 	jsStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("11"))
 	cssStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
 	imgStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("13"))
 	apiStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("14"))
 	fontStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	
+
 	legend = append(legend, fmt.Sprintf("%s HTML  %s JS  %s CSS  %s Images  %s API/JSON  %s Fonts",
 		htmlStyle.Render("█"),
 		jsStyle.Render("█"),
@@ -879,9 +879,9 @@ func (tr *TimelineRenderer) renderLegend() string {
 		imgStyle.Render("█"),
 		apiStyle.Render("█"),
 		fontStyle.Render("█")))
-	
+
 	legend = append(legend, "Status: ✅ Success  🔄 Redirect  ❌ Error")
-	
+
 	return strings.Join(legend, "\n")
 }
 
@@ -891,18 +891,18 @@ func (m Model) renderComparisonView() string {
 	}
 
 	var content []string
-	
+
 	// Header
 	content = append(content, titleStyle.Render(fmt.Sprintf("Performance Comparison (%d files)", len(m.harFiles))))
 	content = append(content, "")
-	
+
 	// Summary
 	summary := m.comparison.Summary
-	summaryText := fmt.Sprintf("📊 %d Better | %d Worse | %d Unchanged (of %d metrics)", 
+	summaryText := fmt.Sprintf("📊 %d Better | %d Worse | %d Unchanged (of %d metrics)",
 		summary.BetterCount, summary.WorseCount, summary.UnchangedCount, summary.TotalMetrics)
 	content = append(content, headerStyle.Render(summaryText))
 	content = append(content, "")
-	
+
 	// Metrics table header
 	header := fmt.Sprintf("%-25s", "Metric")
 	for i, file := range m.comparison.Files {
@@ -914,11 +914,11 @@ func (m Model) renderComparisonView() string {
 	}
 	content = append(content, headerStyle.Render(header))
 	content = append(content, strings.Repeat("─", len(header)))
-	
+
 	// Metrics comparison
 	for _, diff := range m.comparison.Differences {
 		row := fmt.Sprintf("%-25s", diff.Name)
-		
+
 		for i, value := range diff.Values {
 			valueStr := fmt.Sprintf("%v", value)
 			if i == 0 {
@@ -926,7 +926,7 @@ func (m Model) renderComparisonView() string {
 			} else {
 				change := diff.Changes[i]
 				improvement := diff.Improvements[i]
-				
+
 				// Add styling based on improvement
 				changeStyled := change
 				if change != "Baseline" && change != "No change" {
@@ -936,28 +936,28 @@ func (m Model) renderComparisonView() string {
 						changeStyled = lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Render(change + " ⚠️")
 					}
 				}
-				
+
 				combined := fmt.Sprintf("%s (%s)", valueStr, changeStyled)
 				row += fmt.Sprintf("%-20s", combined)
 			}
 		}
-		
+
 		content = append(content, row)
 	}
-	
+
 	content = append(content, "")
 	content = append(content, "")
-	
+
 	// Insights
 	content = append(content, headerStyle.Render("Key Insights"))
 	insights := m.generateInsights()
 	for _, insight := range insights {
 		content = append(content, "• "+insight)
 	}
-	
+
 	content = append(content, "")
 	content = append(content, statusStyle.Render("Press Esc to go back"))
-	
+
 	return strings.Join(content, "\n")
 }
 
@@ -967,7 +967,7 @@ func (m Model) generateInsights() []string {
 	}
 
 	var insights []string
-	
+
 	// Analyze load time changes
 	for _, diff := range m.comparison.Differences {
 		if diff.Name == "Total Load Time" && len(diff.Changes) > 1 {
@@ -978,7 +978,7 @@ func (m Model) generateInsights() []string {
 				insights = append(insights, "Page load time regressed - investigate performance")
 			}
 		}
-		
+
 		if diff.Name == "Error Requests" && len(diff.Changes) > 1 {
 			change := diff.Changes[1]
 			if change == "No change" || strings.Contains(change, "-") {
@@ -987,7 +987,7 @@ func (m Model) generateInsights() []string {
 				insights = append(insights, "Error rate increased - check for new issues")
 			}
 		}
-		
+
 		if diff.Name == "Cache Hit Ratio" && len(diff.Changes) > 1 {
 			change := diff.Changes[1]
 			if strings.Contains(change, "+") && diff.Improvements[1] {
@@ -996,7 +996,7 @@ func (m Model) generateInsights() []string {
 				insights = append(insights, "Cache efficiency decreased")
 			}
 		}
-		
+
 		if diff.Name == "Total Transfer Size" && len(diff.Changes) > 1 {
 			change := diff.Changes[1]
 			if strings.Contains(change, "-") && diff.Improvements[1] {
@@ -1006,23 +1006,23 @@ func (m Model) generateInsights() []string {
 			}
 		}
 	}
-	
+
 	if len(insights) == 0 {
 		insights = append(insights, "Performance appears stable across files")
 	}
-	
+
 	return insights
 }
 
 func (m Model) exportReports() {
 	generator := report.NewGenerator(m.harFiles, m.analyzers, m.comparison)
-	
+
 	timestamp := time.Now().Format("2006-01-02_15-04-05")
 	baseFilename := fmt.Sprintf("har-analysis-%s", timestamp)
-	
+
 	// Export all formats
 	formats := []struct {
-		extension string
+		extension  string
 		exportFunc func(string) error
 	}{
 		{".json", func(filename string) error { return generator.ExportJSON(filename, false) }},
@@ -1030,7 +1030,7 @@ func (m Model) exportReports() {
 		{".html", generator.ExportHTML},
 		{".pdf", generator.ExportPDF},
 	}
-	
+
 	for _, format := range formats {
 		filename := baseFilename + format.extension
 		if err := format.exportFunc(filename); err != nil {
@@ -1104,15 +1104,15 @@ func (m *Model) filterEntries(filterText string) {
 
 var (
 	titleStyle = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("205"))
+			Bold(true).
+			Foreground(lipgloss.Color("205"))
 
 	headerStyle = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86"))
-		
+			Bold(true).
+			Foreground(lipgloss.Color("86"))
+
 	statusStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("242"))
+			Foreground(lipgloss.Color("242"))
 )
 
 func formatSize(size int) string {
@@ -1138,15 +1138,15 @@ func matchesFilter(entry har.Entry, filter string) bool {
 	url := fmt.Sprintf("%s", entry.Request.URL)
 	method := fmt.Sprintf("%s", entry.Request.Method)
 	contentType := fmt.Sprintf("%s", entry.Response.Content.MimeType)
-	
-	return contains(url, filter) || 
-		   contains(method, filter) || 
-		   contains(contentType, filter)
+
+	return contains(url, filter) ||
+		contains(method, filter) ||
+		contains(contentType, filter)
 }
 
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || 
-		len(substr) == 0 || 
+	return len(s) >= len(substr) && (s == substr ||
+		len(substr) == 0 ||
 		findSubstring(s, substr))
 }
 

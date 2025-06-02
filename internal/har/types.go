@@ -28,30 +28,30 @@ type Browser struct {
 }
 
 type Page struct {
-	StartedDateTime time.Time    `json:"startedDateTime"`
-	ID              string       `json:"id"`
-	Title           string       `json:"title"`
-	PageTimings     PageTimings  `json:"pageTimings"`
-	Comment         string       `json:"comment,omitempty"`
+	StartedDateTime time.Time   `json:"startedDateTime"`
+	ID              string      `json:"id"`
+	Title           string      `json:"title"`
+	PageTimings     PageTimings `json:"pageTimings"`
+	Comment         string      `json:"comment,omitempty"`
 }
 
 type PageTimings struct {
-	OnContentLoad int `json:"onContentLoad,omitempty"`
-	OnLoad        int `json:"onLoad,omitempty"`
+	OnContentLoad int    `json:"onContentLoad,omitempty"`
+	OnLoad        int    `json:"onLoad,omitempty"`
 	Comment       string `json:"comment,omitempty"`
 }
 
 type Entry struct {
-	PageRef         string      `json:"pageref,omitempty"`
-	StartedDateTime time.Time   `json:"startedDateTime"`
-	Time            float64     `json:"time"`
-	Request         Request     `json:"request"`
-	Response        Response    `json:"response"`
-	Cache           Cache       `json:"cache"`
-	Timings         Timings     `json:"timings"`
-	ServerIPAddress string      `json:"serverIPAddress,omitempty"`
-	Connection      string      `json:"connection,omitempty"`
-	Comment         string      `json:"comment,omitempty"`
+	PageRef         string    `json:"pageref,omitempty"`
+	StartedDateTime time.Time `json:"startedDateTime"`
+	Time            float64   `json:"time"`
+	Request         Request   `json:"request"`
+	Response        Response  `json:"response"`
+	Cache           Cache     `json:"cache"`
+	Timings         Timings   `json:"timings"`
+	ServerIPAddress string    `json:"serverIPAddress,omitempty"`
+	Connection      string    `json:"connection,omitempty"`
+	Comment         string    `json:"comment,omitempty"`
 }
 
 type Request struct {
@@ -142,12 +142,12 @@ type CacheState struct {
 }
 
 type Timings struct {
-	Blocked int     `json:"blocked,omitempty"`
-	DNS     int     `json:"dns,omitempty"`
-	Connect int     `json:"connect,omitempty"`
-	Send    int     `json:"send"`
-	Wait    int     `json:"wait"`
-	Receive int     `json:"receive"`
-	SSL     int     `json:"ssl,omitempty"`
-	Comment string  `json:"comment,omitempty"`
+	Blocked int    `json:"blocked,omitempty"`
+	DNS     int    `json:"dns,omitempty"`
+	Connect int    `json:"connect,omitempty"`
+	Send    int    `json:"send"`
+	Wait    int    `json:"wait"`
+	Receive int    `json:"receive"`
+	SSL     int    `json:"ssl,omitempty"`
+	Comment string `json:"comment,omitempty"`
 }

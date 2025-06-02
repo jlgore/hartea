@@ -7,19 +7,19 @@ import (
 )
 
 type Metrics struct {
-	TotalRequests     int
-	TotalTime         float64
-	TotalSize         int64
-	TTFB              float64
-	PageLoadTime      float64
-	DNSTime           float64
-	ConnectTime       float64
-	SSLTime           float64
-	FirstContentfulPaint float64
+	TotalRequests          int
+	TotalTime              float64
+	TotalSize              int64
+	TTFB                   float64
+	PageLoadTime           float64
+	DNSTime                float64
+	ConnectTime            float64
+	SSLTime                float64
+	FirstContentfulPaint   float64
 	LargestContentfulPaint float64
-	CacheHitRatio     float64
-	ThirdPartyRequests int
-	ErrorRequests     int
+	CacheHitRatio          float64
+	ThirdPartyRequests     int
+	ErrorRequests          int
 }
 
 type Analyzer struct {
@@ -153,13 +153,13 @@ func (a *Analyzer) GetErrorRequests() []Entry {
 
 func (a *Analyzer) GetResourcesByType() map[string][]Entry {
 	resources := make(map[string][]Entry)
-	
+
 	for _, entry := range a.har.Log.Entries {
 		contentType := entry.Response.Content.MimeType
 		if contentType == "" {
 			contentType = "unknown"
 		}
-		
+
 		// Simplify content types
 		if strings.Contains(contentType, "javascript") {
 			contentType = "javascript"
@@ -174,10 +174,10 @@ func (a *Analyzer) GetResourcesByType() map[string][]Entry {
 		} else if strings.Contains(contentType, "font") {
 			contentType = "font"
 		}
-		
+
 		resources[contentType] = append(resources[contentType], entry)
 	}
-	
+
 	return resources
 }
 
@@ -194,13 +194,13 @@ func (a *Analyzer) isThirdParty(url string) bool {
 		"cdn.",
 		"cdnjs.",
 	}
-	
+
 	for _, domain := range thirdPartyDomains {
 		if strings.Contains(url, domain) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -217,7 +217,7 @@ func (a *Analyzer) calculateEstimatedPageLoadTime() float64 {
 		if entry.StartedDateTime.Before(minStartTime) {
 			minStartTime = entry.StartedDateTime
 		}
-		
+
 		endTime := entry.StartedDateTime.Add(time.Duration(entry.Time) * time.Millisecond)
 		if endTime.After(maxEndTime) {
 			maxEndTime = endTime
@@ -229,7 +229,7 @@ func (a *Analyzer) calculateEstimatedPageLoadTime() float64 {
 
 func (a *Analyzer) GenerateTimeline() []TimelineEvent {
 	var events []TimelineEvent
-	
+
 	for i, entry := range a.har.Log.Entries {
 		events = append(events, TimelineEvent{
 			Index:       i,
@@ -242,12 +242,12 @@ func (a *Analyzer) GenerateTimeline() []TimelineEvent {
 			ContentType: entry.Response.Content.MimeType,
 		})
 	}
-	
+
 	// Sort by start time
 	sort.Slice(events, func(i, j int) bool {
 		return events[i].StartTime.Before(events[j].StartTime)
 	})
-	
+
 	return events
 }
 

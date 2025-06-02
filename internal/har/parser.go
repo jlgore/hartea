@@ -42,7 +42,7 @@ func (p *Parser) ParseReader(reader io.Reader) (*HAR, error) {
 
 func (p *Parser) ParseMultipleFiles(filepaths []string) ([]*HAR, error) {
 	hars := make([]*HAR, 0, len(filepaths))
-	
+
 	for _, filepath := range filepaths {
 		har, err := p.ParseFile(filepath)
 		if err != nil {
@@ -50,7 +50,7 @@ func (p *Parser) ParseMultipleFiles(filepaths []string) ([]*HAR, error) {
 		}
 		hars = append(hars, har)
 	}
-	
+
 	return hars, nil
 }
 
@@ -58,10 +58,10 @@ func (p *Parser) ValidateHAR(har *HAR) error {
 	if har.Log.Version == "" {
 		return fmt.Errorf("missing HAR version")
 	}
-	
+
 	if len(har.Log.Entries) == 0 {
 		return fmt.Errorf("no entries found in HAR file")
 	}
-	
+
 	return nil
 }
