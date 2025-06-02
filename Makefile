@@ -116,12 +116,12 @@ lint: ## Run linters
 		$(GOCMD) install honnef.co/go/tools/cmd/staticcheck@latest; \
 		staticcheck ./...; \
 	fi
-	@if command -v golint > /dev/null; then \
-		golint ./...; \
+	@if command -v golangci-lint > /dev/null; then \
+		golangci-lint run ./...; \
 	else \
-		echo "golint not found, installing..."; \
-		$(GOCMD) install golang.org/x/lint/golint@latest; \
-		golint ./...; \
+		echo "golangci-lint not found, installing..."; \
+		$(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+		golangci-lint run ./...; \
 	fi
 
 vet: ## Run go vet
