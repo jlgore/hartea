@@ -1,0 +1,303 @@
+# GoReleaser configuration for HAR Analyzer
+# See: https://goreleaser.com
+version: 2
+
+project_name: har-analyzer
+
+before:
+  hooks:
+    # Clean up any previous builds
+    - go clean
+    # Ensure dependencies are tidy
+    - go mod tidy
+    # Run tests before building
+    - go test -v ./...
+
+builds:
+  - id: har-analyzer
+    binary: har-analyzer
+    main: ./cmd/main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+      - freebsd
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      # Skip ARM builds for Windows (not common)
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+      # Skip ARM builds for FreeBSD (less common)
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+    flags:
+      - -trimpath
+
+archives:
+  - id: har-analyzer
+    builds:
+      - har-analyzer
+    format: tar.gz
+    # Use zip for Windows
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+      - example.har
+      - example2.har
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^style:'
+      - '^refactor:'
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: 'Performance improvements'
+      regexp: '^.*?perf(\(.+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
+    name: "{{ .ProjectName }}"
+  name_template: "{{ .Tag }}"
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## HAR Analyzer {{ .Tag }}
+    
+    **Advanced terminal-based HAR file analysis tool**
+    
+    ### 🚀 Features
+    - Interactive TUI with table, detail, metrics, timeline, and comparison views
+    - Multi-file performance comparison and analysis
+    - Professional report export (JSON/CSV/HTML/PDF)
+    - Chrome DevTools-style waterfall timeline
+    - Core Web Vitals and performance recommendations
+    
+    ### 📦 Installation
+    
+    **Binary Download:**
+    Download the appropriate binary for your platform from the assets below.
+    
+    **Docker:**
+    ```bash
+    docker pull ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/har-analyzer:{{ .Tag }}
+    ```
+    
+    **Homebrew (macOS/Linux):**
+    ```bash
+    brew install {{ .Env.GITHUB_REPOSITORY_OWNER }}/tap/har-analyzer
+    ```
+  footer: |
+    ---
+    
+    **Full Changelog**: https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}/compare/{{ .PreviousTag }}...{{ .Tag }}
+    
+    ### Support
+    
+    - 📖 [Documentation](https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}#readme)
+    - 🐛 [Report Issues](https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}/issues)
+    - 💬 [Discussions](https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}/discussions)
+
+# Homebrew tap
+brews:
+  - name: har-analyzer
+    repository:
+      owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    url_template: "https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    homepage: "https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}"
+    description: "Advanced terminal-based HAR file analysis tool with interactive TUI, performance metrics, and professional reporting"
+    license: "MIT"
+    test: |
+      system "#{bin}/har-analyzer --version"
+    install: |
+      bin.install "har-analyzer"
+
+# Docker images
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Advanced terminal-based HAR file analysis tool"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/amd64"
+    goarch: amd64
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}-arm64"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Advanced terminal-based HAR file analysis tool"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/arm64"
+    goarch: arm64
+
+docker_manifests:
+  - name_template: "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest"
+    image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-amd64"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-arm64"
+
+# Windows packages
+nfpms:
+  - id: har-analyzer
+    package_name: har-analyzer
+    vendor: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
+    homepage: "https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}"
+    maintainer: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
+    description: "Advanced terminal-based HAR file analysis tool with interactive TUI, performance metrics, and professional reporting"
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+    contents:
+      - src: ./README.md
+        dst: /usr/share/doc/har-analyzer/README.md
+      - src: ./example.har
+        dst: /usr/share/doc/har-analyzer/example.har
+      - src: ./example2.har
+        dst: /usr/share/doc/har-analyzer/example2.har
+
+# Snapcraft (Ubuntu Snap Store)
+snapcrafts:
+  - name: har-analyzer
+    publish: true
+    summary: Advanced HAR file analysis tool
+    description: |
+      HAR Analyzer is a powerful terminal-based tool for analyzing HTTP Archive (HAR) files.
+      
+      Features:
+      - Interactive TUI with multiple view modes
+      - Performance metrics and Core Web Vitals analysis  
+      - Multi-file comparison capabilities
+      - Professional report export (JSON/CSV/HTML/PDF)
+      - Chrome DevTools-style waterfall timeline
+      - Advanced filtering and search
+      
+      Perfect for web developers, performance engineers, and DevOps teams who need
+      to analyze web performance data in their terminal workflow.
+    grade: stable
+    confinement: strict
+    license: MIT
+    base: core22
+    apps:
+      har-analyzer:
+        command: har-analyzer
+        plugs: ["home", "network"]
+
+# Performance and size optimizations
+builds:
+  - <<: *build_defaults
+    ldflags:
+      - -s -w  # Strip debug info and symbol table
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+    flags:
+      - -trimpath  # Remove file system paths from binary
+
+# Signing (optional - requires setup)
+signs:
+  - cmd: cosign
+    certificate: '${artifact}.pem'
+    args:
+      - sign-blob
+      - '--output-certificate=${certificate}'
+      - '--output-signature=${signature}'
+      - '${artifact}'
+      - --yes
+    artifacts: checksum
+    output: true
+
+# SBOMs (Software Bill of Materials)
+sboms:
+  - artifacts: archive
+  - id: source
+    artifacts: source
+
+# Announcement (optional)
+announce:
+  twitter:
+    enabled: false
+  mastodon:
+    enabled: false
+  slack:
+    enabled: false

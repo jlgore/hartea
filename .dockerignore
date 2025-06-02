@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.goreleaser.yaml
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Build artifacts
+build/
+dist/
+*.exe
+har-analyzer
+har-analyzer-*
+
+# Development
+.vscode/
+.idea/
+*.log
+*.tmp
+
+# Testing
+*_test.go
+test_*
+coverage.out
+*.prof
+
+# Docker
+Dockerfile*
+.dockerignore
+docker-compose*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
