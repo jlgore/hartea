@@ -47,7 +47,7 @@ jobs:
           cosign-release: 'v2.1.1'
 
       - name: Install Syft
-        uses: anchore/sbom-action/download-syft@v0.14.3
+        uses: anchore/sbom-action/download-syft@v0.20.1
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
@@ -60,7 +60,7 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0.14.3
+        uses: anchore/sbom-action@v0.20.1
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           format: spdx-json
